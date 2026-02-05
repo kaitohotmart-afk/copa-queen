@@ -83,6 +83,28 @@ export default function AdminEquipasPage() {
         }
     };
 
+    const deleteTeam = async (teamId: string) => {
+        try {
+            const { error } = await supabase
+                .from("teams")
+                .delete()
+                .eq("id", teamId);
+
+            if (error) {
+                console.error("Supabase Error:", error);
+                throw error;
+            }
+
+            setTeams(teams.filter((t) => t.id !== teamId));
+            setShowModal(false);
+            setSelectedTeam(null);
+            alert("Equipa removida com sucesso!");
+        } catch (error: any) {
+            console.error("Erro ao remover equipa:", error);
+            alert(`Erro ao remover equipa: ${error.message || "Erro desconhecido"}`);
+        }
+    };
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -298,25 +320,46 @@ export default function AdminEquipasPage() {
                             ))}
                         </div>
 
-                        <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
-                            {selectedTeam.status === "pending" && (
-                                <button
-                                    onClick={() => updateStatus(selectedTeam.id, "confirmed")}
-                                    className="btn btn-primary"
-                                    style={{ flex: 1 }}
-                                >
-                                    ✅ Confirmar Pagamento
-                                </button>
-                            )}
-                            {selectedTeam.status === "confirmed" && (
-                                <button
-                                    onClick={() => updateStatus(selectedTeam.id, "pending")}
-                                    className="btn btn-secondary"
-                                    style={{ flex: 1 }}
-                                >
-                                    ⏸️ Marcar Pendente
-                                </button>
-                            )}
+                        <div style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                            <div style={{ display: "flex", gap: "1rem" }}>
+                                {selectedTeam.status === "pending" && (
+                                    <button
+                                        onClick={() => updateStatus(selectedTeam.id, "confirmed")}
+                                        className="btn btn-primary"
+                                        style={{ flex: 1 }}
+                                    >
+                                        ✅ Confirmar Pagamento
+                                    </button>
+                                )}
+                                {selectedTeam.status === "confirmed" && (
+                                    <button
+                                        onClick={() => updateStatus(selectedTeam.id, "pending")}
+                                        className="btn btn-secondary"
+                                        style={{ flex: 1 }}
+                                    >
+                                        ⏸️ Marcar Pendente
+                                    </button>
+                                )}
+                            </div>
+
+                            <hr style={{ borderColor: "var(--border-color)", margin: "0.5rem 0" }} />
+
+                            <button
+                                onClick={() => {
+                                    if (confirm(`Tem certeza que deseja APAGAR a equipa "${selectedTeam.name}"? Esta ação removerá a equipa e todos os seus jogadores permanentemente e não pode ser desfeita.`)) {
+                                        deleteTeam(selectedTeam.id);
+                                    }
+                                }}
+                                className="btn"
+                                style={{
+                                    width: "100%",
+                                    background: "rgba(239, 68, 68, 0.1)",
+                                    color: "#ef4444",
+                                    border: "1px solid rgba(239, 68, 68, 0.2)"
+                                }}
+                            >
+                                🗑️ Apagar Equipa Permanentemente
+                            </button>
                         </div>
                     </div>
                 </div>
