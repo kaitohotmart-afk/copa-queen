@@ -104,7 +104,6 @@ export default function AdminPontuacaoPage() {
                     booyahs: formBooyahs,
                     team_kills: totalKills,
                     position_points: positionPoints,
-                    total_points: totalPoints,
                 })
                 .eq("id", editingTeam.id);
 
