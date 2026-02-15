@@ -82,6 +82,13 @@ export default function AdminPontuacaoPage() {
 
     const saveChanges = async () => {
         if (!editingTeam) return;
+
+        // Basic validation
+        if (formPosition === 0) {
+            alert("Por favor, selecione uma posição final.");
+            return;
+        }
+
         setIsSaving(true);
 
         try {
@@ -101,7 +108,10 @@ export default function AdminPontuacaoPage() {
                 })
                 .eq("id", editingTeam.id);
 
-            if (teamError) throw teamError;
+            if (teamError) {
+                console.error("Erro Supabase (tabela teams):", teamError);
+                throw new Error(`Erro ao atualizar equipa: ${teamError.message}`);
+            }
 
             // Update each player's kills
             for (const [playerId, kills] of Object.entries(formPlayerKills)) {
@@ -110,7 +120,10 @@ export default function AdminPontuacaoPage() {
                     .update({ kills })
                     .eq("id", playerId);
 
-                if (playerError) throw playerError;
+                if (playerError) {
+                    console.error(`Erro Supabase (jogador ${playerId}):`, playerError);
+                    throw new Error(`Erro ao atualizar jogador: ${playerError.message}`);
+                }
             }
 
             // Update local state
@@ -134,9 +147,10 @@ export default function AdminPontuacaoPage() {
 
             setShowModal(false);
             setEditingTeam(null);
-        } catch (error) {
+            alert("Alterações salvas com sucesso!");
+        } catch (error: any) {
             console.error("Erro ao salvar alterações:", error);
-            alert("Erro ao salvar alterações.");
+            alert(error.message || "Erro inesperado ao salvar alterações.");
         } finally {
             setIsSaving(false);
         }
