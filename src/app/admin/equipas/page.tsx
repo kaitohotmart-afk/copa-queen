@@ -14,11 +14,14 @@ type Team = {
     tag: string;
     status: "pending" | "confirmed" | "rejected";
     created_at: string;
-    players: Player[];
+    group_id?: string;
+    groups?: { name: string } | { name: string }[];
+    players: { name: string; is_reserve: boolean }[];
 };
 
 export default function AdminEquipasPage() {
     const [teams, setTeams] = useState<Team[]>([]);
+    const [availableGroups, setAvailableGroups] = useState<{ id: string, name: string }[]>([]);
     const [filter, setFilter] = useState<"all" | "confirmed" | "pending">("all");
     const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -26,7 +29,13 @@ export default function AdminEquipasPage() {
 
     useEffect(() => {
         fetchTeams();
+        fetchGroups();
     }, []);
+
+    const fetchGroups = async () => {
+        const { data } = await supabase.from("groups").select("id, name").order("name");
+        if (data) setAvailableGroups(data);
+    };
 
     const fetchTeams = async () => {
         try {
@@ -38,6 +47,10 @@ export default function AdminEquipasPage() {
                     tag,
                     status,
                     created_at,
+                    group_id,
+                    groups (
+                        name
+                    ),
                     players (
                         name,
                         is_reserve
@@ -46,7 +59,7 @@ export default function AdminEquipasPage() {
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
-            setTeams(data || []);
+            setTeams((data as any) || []);
         } catch (error) {
             console.error("Erro ao buscar equipas:", error);
         } finally {
@@ -80,6 +93,33 @@ export default function AdminEquipasPage() {
         } catch (error) {
             console.error("Erro ao atualizar status:", error);
             alert("Erro ao atualizar status.");
+        }
+    };
+
+    const updateGroup = async (teamId: string, newGroupId: string) => {
+        try {
+            const { error } = await supabase
+                .from("teams")
+                .update({ group_id: newGroupId || null })
+                .eq("id", teamId);
+
+            if (error) throw error;
+
+            const groupName = availableGroups.find(g => g.id === newGroupId)?.name || "";
+
+            setTeams(
+                teams.map((team) =>
+                    team.id === teamId ? { ...team, group_id: newGroupId, groups: newGroupId ? { name: groupName } : undefined } : team
+                )
+            );
+
+            if (selectedTeam?.id === teamId) {
+                setSelectedTeam({ ...selectedTeam, group_id: newGroupId, groups: newGroupId ? { name: groupName } : undefined });
+            }
+            alert("Grupo atualizado!");
+        } catch (error) {
+            console.error("Erro ao atualizar grupo:", error);
+            alert("Erro ao atualizar grupo.");
         }
     };
 
@@ -168,7 +208,21 @@ export default function AdminEquipasPage() {
                         <tbody>
                             {filteredTeams.map((team) => (
                                 <tr key={team.id}>
-                                    <td style={{ fontWeight: 600 }}>{team.name}</td>
+                                    <td style={{ fontWeight: 600 }}>
+                                        {team.name}
+                                        {team.groups && (
+                                            <span style={{
+                                                marginLeft: "0.5rem",
+                                                fontSize: "0.65rem",
+                                                background: "var(--purple)",
+                                                padding: "0.1rem 0.4rem",
+                                                borderRadius: "4px",
+                                                color: "white"
+                                            }}>
+                                                {Array.isArray(team.groups) ? team.groups[0]?.name : team.groups.name}
+                                            </span>
+                                        )}
+                                    </td>
                                     <td style={{ color: "var(--purple)" }}>[{team.tag}]</td>
                                     <td>{team.players.length}</td>
                                     <td>
@@ -281,6 +335,21 @@ export default function AdminEquipasPage() {
                             <span style={{ marginLeft: "1rem", color: "var(--text-muted)", fontSize: "0.875rem" }}>
                                 Inscrita em {formatDate(selectedTeam.created_at)}
                             </span>
+                        </div>
+
+                        <div style={{ marginBottom: "1.5rem" }}>
+                            <label className="label" style={{ fontSize: "0.875rem" }}>Grupo</label>
+                            <select
+                                className="input"
+                                value={selectedTeam.group_id || ""}
+                                onChange={(e) => updateGroup(selectedTeam.id, e.target.value)}
+                                style={{ marginTop: "0.25rem" }}
+                            >
+                                <option value="">Sem Grupo</option>
+                                {availableGroups.map((g) => (
+                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <h3 style={{ marginBottom: "1rem", fontSize: "1rem" }}>

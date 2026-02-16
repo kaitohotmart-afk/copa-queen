@@ -12,6 +12,7 @@ const navItems = [
     { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
     { href: "/admin/equipas", label: "Equipas", icon: "👥" },
     { href: "/admin/pontuacao", label: "Pontuação", icon: "🎯" },
+    { href: "/admin/classificacao", label: "Classificação", icon: "🏆" },
     { href: "/admin/mvp", label: "MVP", icon: "⭐" },
     { href: "/admin/regulamento", label: "Regulamento", icon: "📋" },
 ];

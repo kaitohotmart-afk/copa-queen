@@ -10,8 +10,19 @@ export default function AdminNewTeamPage() {
     const [teamName, setTeamName] = useState("");
     const [teamTag, setTeamTag] = useState("");
     const [status, setStatus] = useState("confirmed");
+    const [groupId, setGroupId] = useState("");
+    const [groups, setGroups] = useState<{ id: string, name: string }[]>([]);
     const [players, setPlayers] = useState<string[]>(["", "", "", ""]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useState(() => {
+        fetchGroups();
+    });
+
+    const fetchGroups = async () => {
+        const { data } = await supabase.from("groups").select("id, name").order("name");
+        if (data) setGroups(data);
+    };
 
     const addPlayer = () => {
         if (players.length < 6) {
@@ -56,6 +67,7 @@ export default function AdminNewTeamPage() {
                         name: teamName,
                         tag: teamTag,
                         status: status,
+                        group_id: groupId || null,
                     },
                 ])
                 .select()
@@ -78,7 +90,7 @@ export default function AdminNewTeamPage() {
             }
 
             alert("Equipa inscrita com sucesso!");
-            router.push("/admin/equipas");
+            router.push("/admin/dashboard");
 
         } catch (error) {
             console.error("Erro ao salvar inscrição:", error);
@@ -142,6 +154,20 @@ export default function AdminNewTeamPage() {
                                 >
                                     <option value="confirmed">🟢 Confirmada</option>
                                     <option value="pending">🟡 Pendente</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="label">Grupo</label>
+                                <select
+                                    className="input"
+                                    value={groupId}
+                                    onChange={(e) => setGroupId(e.target.value)}
+                                    style={{ appearance: "none" }}
+                                >
+                                    <option value="">Sem Grupo</option>
+                                    {groups.map(g => (
+                                        <option key={g.id} value={g.id}>{g.name}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>

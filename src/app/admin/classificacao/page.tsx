@@ -20,7 +20,7 @@ function getRankClass(rank: number): string {
     return "rank";
 }
 
-export default function ClassificacaoPage() {
+export default function AdminClassificacaoPage() {
     const [activeTab, setActiveTab] = useState("GERAL");
     const [standings, setStandings] = useState<Team[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -71,15 +71,15 @@ export default function ClassificacaoPage() {
     const tabs = ["GERAL", "GRUPO A", "GRUPO B", "GRUPO C", "GRUPO D"];
 
     return (
-        <>
-            <div className="page-header">
-                <h1 className="page-title">Classificação</h1>
-                <p className="page-subtitle">
-                    Ranking da Copa Queen Season 4
+        <div>
+            <div style={{ marginBottom: "2rem" }}>
+                <h1 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Classificação Geral</h1>
+                <p style={{ color: "var(--text-secondary)" }}>
+                    Visualize a classificação atual da Copa Queen Season 4 por grupos ou geral.
                 </p>
             </div>
 
-            <div className="container" style={{ paddingBottom: "4rem" }}>
+            <div style={{ paddingBottom: "4rem" }}>
                 {/* Tabs */}
                 <div
                     style={{
@@ -126,23 +126,8 @@ export default function ClassificacaoPage() {
                     <span>⭐ <strong>Pontos</strong> - Total</span>
                 </div>
 
-                {/* Scoring Info */}
-                <div
-                    style={{
-                        marginBottom: "2rem",
-                        padding: "1rem",
-                        background: "var(--bg-card)",
-                        borderRadius: "0.75rem",
-                        fontSize: "0.875rem",
-                        color: "var(--text-secondary)"
-                    }}
-                >
-                    <strong style={{ color: "var(--purple)" }}>⚖️ Critério de Desempate:</strong>
-                    <span style={{ marginLeft: "0.5rem" }}>1º Maior número de BOOYAH • 2º Maior número de Kills</span>
-                </div>
-
-                {/* Desktop Table */}
-                <div className="card" style={{ padding: 0, overflow: "hidden", display: "block" }}>
+                {/* Table */}
+                <div className="card" style={{ padding: 0, overflow: "hidden" }}>
                     <div style={{ overflowX: "auto" }}>
                         <table className="data-table">
                             <thead>
@@ -211,48 +196,7 @@ export default function ClassificacaoPage() {
                         </table>
                     </div>
                 </div>
-
-                {/* Position Points Reference */}
-                <div style={{ marginTop: "2rem" }}>
-                    <h3 style={{ marginBottom: "1rem", fontSize: "1rem" }}>📊 Pontos por Posição</h3>
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-                            gap: "0.5rem"
-                        }}
-                    >
-                        {[
-                            { pos: "1º", pts: 20 },
-                            { pos: "2º", pts: 17 },
-                            { pos: "3º", pts: 15 },
-                            { pos: "4º", pts: 13 },
-                            { pos: "5º", pts: 11 },
-                            { pos: "6º", pts: 9 },
-                            { pos: "7º", pts: 6 },
-                            { pos: "8º", pts: 5 },
-                            { pos: "9º", pts: 4 },
-                            { pos: "10º", pts: 3 },
-                            { pos: "11º", pts: 2 },
-                            { pos: "12º", pts: 1 },
-                        ].map((item) => (
-                            <div
-                                key={item.pos}
-                                style={{
-                                    background: "var(--bg-card)",
-                                    padding: "0.5rem",
-                                    borderRadius: "0.5rem",
-                                    textAlign: "center",
-                                    fontSize: "0.875rem"
-                                }}
-                            >
-                                <span style={{ color: "var(--text-muted)" }}>{item.pos}</span>
-                                <span style={{ marginLeft: "0.25rem", fontWeight: 600 }}>{item.pts} pts</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
             </div>
-        </>
+        </div>
     );
 }

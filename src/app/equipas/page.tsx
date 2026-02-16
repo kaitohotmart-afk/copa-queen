@@ -9,6 +9,7 @@ type Team = {
     name: string;
     tag: string;
     status: "pending" | "confirmed" | "rejected";
+    groups?: { name: string } | { name: string }[];
     players: {
         name: string;
         is_reserve: boolean;
@@ -32,6 +33,9 @@ export default function EquipasPage() {
                     name,
                     tag,
                     status,
+                    groups (
+                        name
+                    ),
                     players (
                         name,
                         is_reserve
@@ -40,7 +44,7 @@ export default function EquipasPage() {
                 .order("created_at", { ascending: false });
 
             if (error) throw error;
-            setTeams(data || []);
+            setTeams((data as any) || []);
         } catch (error) {
             console.error("Erro ao buscar equipas:", error);
         } finally {
@@ -70,7 +74,19 @@ export default function EquipasPage() {
                         <div key={team.id} className="team-card">
                             <div className="team-header">
                                 <div>
-                                    <div className="team-name">{team.name}</div>
+                                    <div className="team-name">
+                                        {team.name}
+                                        {team.groups && (
+                                            <span style={{
+                                                marginLeft: "0.5rem",
+                                                fontSize: "0.7rem",
+                                                color: "var(--purple)",
+                                                fontWeight: 600
+                                            }}>
+                                                [{Array.isArray(team.groups) ? team.groups[0]?.name : team.groups.name}]
+                                            </span>
+                                        )}
+                                    </div>
                                     <div className="team-tag">[{team.tag}]</div>
                                 </div>
                                 <StatusBadge status={team.status} />
