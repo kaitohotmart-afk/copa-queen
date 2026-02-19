@@ -9,6 +9,7 @@ type Team = {
     tag: string;
     booyahs: number;
     team_kills: number;
+    penalty_points: number;
     total_points: number;
     groups?: { name: string } | { name: string }[];
 };
@@ -39,6 +40,7 @@ export default function ClassificacaoPage() {
                     tag, 
                     booyahs, 
                     team_kills, 
+                    penalty_points,
                     total_points,
                     groups (
                         name
@@ -115,7 +117,7 @@ export default function ClassificacaoPage() {
                     style={{
                         display: "flex",
                         gap: "2rem",
-                        marginBottom: "1.5rem",
+                        marginBottom: "1rem",
                         fontSize: "0.875rem",
                         color: "var(--text-secondary)",
                         flexWrap: "wrap"
@@ -123,7 +125,8 @@ export default function ClassificacaoPage() {
                 >
                     <span>🏆 <strong>BOOYAH</strong> - Vitórias</span>
                     <span>🔫 <strong>Kills</strong> - Abates</span>
-                    <span>⭐ <strong>Pontos</strong> - Total</span>
+                    <span>❌ <strong>Punição</strong> - Pontos Negativos</span>
+                    <span>⭐ <strong>Pontos</strong> - Total (Kills + Pos - Punição)</span>
                 </div>
 
                 {/* Scoring Info */}
@@ -151,6 +154,7 @@ export default function ClassificacaoPage() {
                                     <th>Equipa</th>
                                     <th style={{ textAlign: "center" }}>🏆 BOOYAH</th>
                                     <th style={{ textAlign: "center" }}>🔫 Kills</th>
+                                    <th style={{ textAlign: "center" }}>❌ Punição</th>
                                     <th style={{ textAlign: "center" }}>⭐ Pontos</th>
                                 </tr>
                             </thead>
@@ -183,6 +187,9 @@ export default function ClassificacaoPage() {
                                         </td>
                                         <td style={{ textAlign: "center", fontWeight: 600, fontSize: "1.125rem" }}>
                                             {team.team_kills}
+                                        </td>
+                                        <td style={{ textAlign: "center", fontWeight: 600, fontSize: "1.125rem", color: team.penalty_points > 0 ? "#ef4444" : "var(--text-muted)" }}>
+                                            {team.penalty_points > 0 ? `-${team.penalty_points}` : "0"}
                                         </td>
                                         <td style={{ textAlign: "center" }}>
                                             <span

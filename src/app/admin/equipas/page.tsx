@@ -15,6 +15,7 @@ type Team = {
     status: "pending" | "confirmed" | "rejected";
     created_at: string;
     group_id?: string;
+    penalty_points: number;
     groups?: { name: string } | { name: string }[];
     players: { name: string; is_reserve: boolean }[];
 };
@@ -48,6 +49,7 @@ export default function AdminEquipasPage() {
                     status,
                     created_at,
                     group_id,
+                    penalty_points,
                     groups (
                         name
                     ),
@@ -120,6 +122,30 @@ export default function AdminEquipasPage() {
         } catch (error) {
             console.error("Erro ao atualizar grupo:", error);
             alert("Erro ao atualizar grupo.");
+        }
+    };
+
+    const updatePenalty = async (teamId: string, penalty: number) => {
+        try {
+            const { error } = await supabase
+                .from("teams")
+                .update({ penalty_points: penalty })
+                .eq("id", teamId);
+
+            if (error) throw error;
+
+            setTeams(
+                teams.map((team) =>
+                    team.id === teamId ? { ...team, penalty_points: penalty } : team
+                )
+            );
+
+            if (selectedTeam?.id === teamId) {
+                setSelectedTeam({ ...selectedTeam, penalty_points: penalty });
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar punição:", error);
+            alert("Erro ao atualizar punição.");
         }
     };
 
@@ -337,19 +363,32 @@ export default function AdminEquipasPage() {
                             </span>
                         </div>
 
-                        <div style={{ marginBottom: "1.5rem" }}>
-                            <label className="label" style={{ fontSize: "0.875rem" }}>Grupo</label>
-                            <select
-                                className="input"
-                                value={selectedTeam.group_id || ""}
-                                onChange={(e) => updateGroup(selectedTeam.id, e.target.value)}
-                                style={{ marginTop: "0.25rem" }}
-                            >
-                                <option value="">Sem Grupo</option>
-                                {availableGroups.map((g) => (
-                                    <option key={g.id} value={g.id}>{g.name}</option>
-                                ))}
-                            </select>
+                        <div style={{ marginBottom: "1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                            <div>
+                                <label className="label" style={{ fontSize: "0.875rem" }}>Grupo</label>
+                                <select
+                                    className="input"
+                                    value={selectedTeam.group_id || ""}
+                                    onChange={(e) => updateGroup(selectedTeam.id, e.target.value)}
+                                    style={{ marginTop: "0.25rem" }}
+                                >
+                                    <option value="">Sem Grupo</option>
+                                    {availableGroups.map((g) => (
+                                        <option key={g.id} value={g.id}>{g.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="label" style={{ fontSize: "0.875rem" }}>❌ Punição (Pontos)</label>
+                                <input
+                                    type="number"
+                                    className="input"
+                                    value={selectedTeam.penalty_points || 0}
+                                    onChange={(e) => updatePenalty(selectedTeam.id, parseInt(e.target.value) || 0)}
+                                    style={{ marginTop: "0.25rem" }}
+                                    placeholder="Ex: 5"
+                                />
+                            </div>
                         </div>
 
                         <h3 style={{ marginBottom: "1rem", fontSize: "1rem" }}>
