@@ -263,12 +263,57 @@ export default function AdminPontuacaoPage() {
         }
     };
 
+    const resetTeamsKeepMVP = async () => {
+        if (!confirm("⚠️ ATENÇÃO: Isto irá zerar os pontos das equipas, apagando todas as quedas. No entanto, AS KILLS DOS JOGADORES (MVP) SERÃO MANTIDAS. Deseja continuar?")) return;
+        if (!confirm("Tem absoluta certeza? As quedas não poderão ser recuperadas.")) return;
+
+        setIsLoading(true);
+        try {
+            // 1. Fetch current players and their total kills
+            const { data: players, error: fetchError } = await supabase.from("players").select("id, kills");
+            if (fetchError) throw fetchError;
+
+            // 2. Set baseline_kills to current kills for all players
+            if (players) {
+                for (const p of players) {
+                    await supabase.from("players").update({ baseline_kills: p.kills }).eq("id", p.id);
+                }
+            }
+
+            // 3. Delete rounds (this cascades to round_results and player_round_results)
+            await supabase.from("player_round_results").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+            await supabase.from("round_results").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+            const { error: dropError } = await supabase.from("rounds").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+            if (dropError) throw dropError;
+
+            setRounds([]);
+            setSelectedRound(null);
+            setRoundResults({});
+            await fetchTeams();
+            alert("Equipas zeradas com sucesso! MVP mantido.");
+        } catch (error) {
+            console.error("Erro ao resetar equipas:", error);
+            alert("Erro ao resetar equipas.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const resetSystem = async () => {
         if (!confirm("⚠️ ATENÇÃO: Isto irá apagar todas as quedas, resultados e mortes de jogadores. A classificação voltará a zero. Deseja continuar?")) return;
         if (!confirm("Tem absoluta certeza? Esta ação não pode ser desfeita.")) return;
 
         setIsLoading(true);
         try {
+            // Reset baseline for all players to 0 just to be sure
+            const { data: players } = await supabase.from("players").select("id");
+            if (players) {
+                for (const p of players) {
+                    await supabase.from("players").update({ baseline_kills: 0 }).eq("id", p.id);
+                }
+            }
+
             // Triggers will handle most of the summary reset, 
             // but we delete from child to parent for safety (though Supabase might handle it).
             await supabase.from("player_round_results").delete().neq("id", "00000000-0000-0000-0000-000000000000");
@@ -438,9 +483,14 @@ export default function AdminPontuacaoPage() {
                 <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
                     Estas ações são permanentes e não podem ser desfeitas.
                 </p>
-                <button onClick={resetSystem} className="btn" style={{ background: "#ef4444", color: "white", padding: "0.75rem 1.5rem", fontWeight: 600 }}>
-                    Resetar Todos os Pontos
-                </button>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                    <button onClick={resetTeamsKeepMVP} className="btn" style={{ background: "#f59e0b", color: "white", padding: "0.75rem 1.5rem", fontWeight: 600 }}>
+                        Zerar Equipas (Manter MVP)
+                    </button>
+                    <button onClick={resetSystem} className="btn" style={{ background: "#ef4444", color: "white", padding: "0.75rem 1.5rem", fontWeight: 600 }}>
+                        Resetar TUDO (Equipas + MVP)
+                    </button>
+                </div>
             </div>
 
             {/* Modal de Lançamento */}
